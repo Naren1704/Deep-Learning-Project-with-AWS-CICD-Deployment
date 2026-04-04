@@ -1,0 +1,14 @@
+# Virtual environment
+kidney/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# DVC cache (optional)
+.dvc/cache/
