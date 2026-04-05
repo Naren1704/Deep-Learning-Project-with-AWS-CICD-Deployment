@@ -8,7 +8,6 @@ __pycache__
 venv/
 env/
 data/
-artifacts/
 models/
 *.h5
 *.pt
