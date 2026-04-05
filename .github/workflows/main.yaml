@@ -64,5 +64,5 @@ jobs:
             docker rm kidney-container || true
 
             echo "Running new container..."
-            docker run -d -p 8080:8080 --name kidney-container \
+            docker run -d -p 8080:8080 --name kidney-classifier \
               $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
