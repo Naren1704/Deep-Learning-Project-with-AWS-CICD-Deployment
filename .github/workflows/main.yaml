@@ -60,8 +60,8 @@ jobs:
             docker pull $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
 
             echo "Stopping old container..."
-            docker stop kidney-container || true
-            docker rm kidney-container || true
+            docker stop kidney-classifier || true
+            docker rm kidney-classifierer || true
 
             echo "Running new container..."
             docker run -d -p 8080:8080 --name kidney-classifier \
