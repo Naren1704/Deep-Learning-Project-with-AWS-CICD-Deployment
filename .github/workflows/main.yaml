@@ -46,13 +46,18 @@ jobs:
       # 5. Deploy to EC2
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            echo "Logging into ECR..."
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
+
             echo "Pulling latest image..."
-            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+            docker pull $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
 
             echo "Stopping old container..."
             docker stop kidney-container || true
@@ -60,4 +65,4 @@ jobs:
 
             echo "Running new container..."
             docker run -d -p 8080:8080 --name kidney-container \
-              ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+              $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
