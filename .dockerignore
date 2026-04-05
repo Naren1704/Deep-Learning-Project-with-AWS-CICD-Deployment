@@ -1,14 +1,41 @@
+# Git
 .git
 .gitignore
-__pycache__
+
+# Python cache
+__pycache__/
 *.pyc
 *.pyo
 *.pyd
-.env
+
+# Virtual environments
 venv/
 env/
+.venv/
+
+# Environment files
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+
+# Docker
+Dockerfile
+docker-compose.yml
+
+# Large unnecessary folders (ONLY if not used)
 data/
-models/
-*.h5
-*.pt
-*.pth
+
+# ❗ IMPORTANT: DO NOT IGNORE YOUR MODEL
+# models/
+# *.h5
+# *.pt
+# *.pth
+# artifacts/
