@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kidney Disease Classifier</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .container { background: #1e293b; border-radius: 16px; padding: 40px; width: 480px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); }
+        h1 { text-align: center; font-size: 1.6rem; color: #38bdf8; margin-bottom: 8px; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 32px; }
+        .upload-area { border: 2px dashed #334155; border-radius: 12px; padding: 32px; text-align: center; cursor: pointer; transition: all 0.3s; margin-bottom: 20px; }
+        .upload-area:hover { border-color: #38bdf8; background: #0f172a; }
+        .upload-area input { display: none; }
+        .upload-area label { cursor: pointer; color: #94a3b8; }
+        .upload-area label span { color: #38bdf8; font-weight: 600; }
+        #preview { max-width: 100%; max-height: 200px; border-radius: 8px; margin-top: 12px; display: none; }
+        .btn { width: 100%; padding: 14px; background: #0284c7; border: none; border-radius: 10px; color: white; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.3s; }
+        .btn:hover { background: #0369a1; }
+        .btn:disabled { background: #334155; cursor: not-allowed; }
+        .result { margin-top: 24px; background: #0f172a; border-radius: 12px; padding: 20px; display: none; }
+        .result h2 { font-size: 1rem; color: #94a3b8; margin-bottom: 12px; }
+        .prediction { font-size: 1.8rem; font-weight: 700; color: #38bdf8; margin-bottom: 4px; }
+        .confidence { color: #22c55e; font-size: 1rem; margin-bottom: 16px; }
+        .prob-bar { margin-bottom: 10px; }
+        .prob-label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; color: #94a3b8; }
+        .bar-bg { background: #1e293b; border-radius: 99px; height: 8px; }
+        .bar-fill { height: 8px; border-radius: 99px; background: #0284c7; transition: width 0.6s ease; }
+        .loading { text-align: center; color: #94a3b8; margin-top: 16px; display: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🩺 Kidney CT Classifier</h1>
+    <p class="subtitle">EfficientNetB0 · 4 Classes · 99.36% Accuracy</p>
+
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept="image/*" onchange="previewImage(event)">
+        <label>Drop a CT scan or <span>browse</span></label>
+        <img id="preview" alt="preview">
+    </div>
+
+    <button class="btn" id="predictBtn" onclick="predict()" disabled>Analyse</button>
+    <div class="loading" id="loading">⏳ Analysing CT scan...</div>
+
+    <div class="result" id="result">
+        <h2>DIAGNOSIS</h2>
+        <div class="prediction" id="predClass"></div>
+        <div class="confidence" id="predConf"></div>
+        <div id="probBars"></div>
+    </div>
+</div>
+
+<script>
+function previewImage(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const preview = document.getElementById('preview');
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = 'block';
+    document.getElementById('predictBtn').disabled = false;
+    document.getElementById('result').style.display = 'none';
+}
+
+async function predict() {
+    const file = document.getElementById('fileInput').files[0];
+    if (!file) return;
+
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('predictBtn').disabled = true;
+    document.getElementById('result').style.display = 'none';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const res  = await fetch('/predict', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        document.getElementById('predClass').textContent = data.prediction;
+        document.getElementById('predConf').textContent  = `Confidence: ${data.confidence}`;
+
+        const barsDiv = document.getElementById('probBars');
+        barsDiv.innerHTML = '';
+        for (const [cls, prob] of Object.entries(data.probabilities)) {
+            const pct = parseFloat(prob);
+            barsDiv.innerHTML += `
+                <div class="prob-bar">
+                    <div class="prob-label"><span>${cls}</span><span>${prob}</span></div>
+                    <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>
+                </div>`;
+        }
+
+        document.getElementById('result').style.display = 'block';
+    } catch (err) {
+        alert('Error: ' + err.message);
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('predictBtn').disabled = false;
+    }
+}
+</script>
+</body>
+</html>

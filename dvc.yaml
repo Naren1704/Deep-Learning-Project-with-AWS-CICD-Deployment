@@ -1,0 +1,25 @@
+stages:
+  prepare_base_model:
+    cmd: python -c "from cnnClassifier.pipeline.stage_02_prepare_base_model import PrepareBaseModelTrainingPipeline; PrepareBaseModelTrainingPipeline().main()"
+    deps:
+      - config/config.yaml
+      - params.yaml
+    outs:
+      - artifacts/prepare_base_model
+
+  training:
+    cmd: python -c "from cnnClassifier.pipeline.stage_03_model_training import ModelTrainingPipeline; ModelTrainingPipeline().main()"
+    deps:
+      - artifacts/prepare_base_model
+      - config/config.yaml
+      - params.yaml
+    outs:
+      - artifacts/training
+
+  evaluation:
+    cmd: python -c "from cnnClassifier.pipeline.stage_04_model_evaluation import EvaluationPipeline; EvaluationPipeline().main()"
+    deps:
+      - artifacts/training
+    metrics:
+      - scores.json:
+          cache: false
