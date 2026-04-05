@@ -6,7 +6,9 @@ from cnnClassifier.components.model_prediction import PredictionPipeline
 app = Flask(__name__)
 CORS(app)
 
-MODEL_PATH = os.path.join("artifacts", "training", "kidney_savedmodel")
+import os
+
+MODEL_PATH = os.path.join(os.getcwd(), "artifacts", "training", "kidney_savedmodel")
 predictor  = PredictionPipeline(MODEL_PATH)
 
 @app.route("/", methods=["GET"])
