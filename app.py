@@ -7,11 +7,12 @@ from cnnClassifier.components.model_prediction import PredictionPipeline
 app = Flask(__name__)
 CORS(app)
 
-# ✅ FIXED: Use ONE consistent path
 MODEL_DIR = "/app/artifacts/training/kidney_savedmodel"
+predictor = None  # will initialize after validation
+
 
 def download_model_from_s3():
-    print("Checking S3 bucket...")
+    print("🔍 Checking S3 bucket...")
 
     s3 = boto3.client("s3")
     bucket = "kidney-model-bucket"
@@ -20,10 +21,9 @@ def download_model_from_s3():
     response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
 
     if "Contents" not in response:
-        print("❌ No files found in S3 bucket!")
-        return
+        raise Exception("❌ No files found in S3 bucket. Check bucket/prefix/permissions.")
 
-    print(f"Found {len(response['Contents'])} objects in S3")
+    print(f"✅ Found {len(response['Contents'])} objects in S3")
 
     for obj in response["Contents"]:
         key = obj["Key"]
@@ -34,17 +34,36 @@ def download_model_from_s3():
         local_path = os.path.join(MODEL_DIR, key.replace(prefix, ""))
 
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        print(f"Downloading {key} → {local_path}")
+
+        print(f"⬇️ Downloading {key} → {local_path}")
         s3.download_file(bucket, key, local_path)
 
-    print("✅ Model downloaded successfully!")
+    print("✅ Model download complete!")
 
-# ✅ Ensure model exists
+
+def verify_model_exists():
+    required_file = os.path.join(MODEL_DIR, "saved_model.pb")
+
+    if not os.path.exists(required_file):
+        raise Exception(f"❌ Model not found after download: {required_file}")
+
+    print("✅ Model files verified!")
+
+
+# ========================
+# BOOTSTRAP (CRITICAL FLOW)
+# ========================
 os.makedirs(MODEL_DIR, exist_ok=True)
-download_model_from_s3()
 
-# ✅ Use SAME path
-predictor = PredictionPipeline(MODEL_DIR)
+try:
+    download_model_from_s3()
+    verify_model_exists()
+
+    predictor = PredictionPipeline(MODEL_DIR)
+
+except Exception as e:
+    print("❌ Startup failed:", str(e))
+    predictor = None
 
 
 @app.route("/", methods=["GET"])
@@ -54,6 +73,9 @@ def home():
 
 @app.route("/predict", methods=["POST"])
 def predict():
+    if predictor is None:
+        return jsonify({"error": "Model not loaded"}), 500
+
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
 
@@ -74,4 +96,5 @@ def train_route():
 
 
 if __name__ == "__main__":
+    print("🚀 Starting Flask app...")
     app.run(host="0.0.0.0", port=8080)
