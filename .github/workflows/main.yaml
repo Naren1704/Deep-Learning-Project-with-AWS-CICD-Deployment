@@ -27,20 +27,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # 3. Login to Amazon ECR
+      # 3. Login to ECR
       - name: Login to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 4. Build, tag, and push Docker image
+      # 4. Build and Push
       - name: Build and Push Docker Image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          echo "Building Docker image..."
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-
-          echo "Pushing Docker image..."
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       # 5. Deploy to EC2
@@ -53,16 +50,15 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "Logging into ECR..."
-            aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
+            echo "Logging into ECR"
+            aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $ECR_REGISTRY
 
-            echo "Pulling latest image..."
-            docker pull $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+            echo "Pulling image"
+            docker pull $ECR_REGISTRY/kidney-classifier:latest
 
-            echo "Stopping old container..."
+            echo "Stopping old container"
             docker stop kidney-classifier || true
-            docker rm kidney-classifierer || true
+            docker rm kidney-classifier || true
 
-            echo "Running new container..."
-            docker run -d -p 8080:8080 --name kidney-classifier \
-              $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+            echo "Running container"
+            docker run -d -p 8080:8080 --name kidney-classifier $ECR_REGISTRY/kidney-classifier:latest
