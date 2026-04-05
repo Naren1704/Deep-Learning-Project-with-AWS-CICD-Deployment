@@ -155,7 +155,7 @@ http://127.0.0.1:5000/
 ## 📊 Results
 
 * Achieved high classification accuracy on CKD prediction
-* Model successfully distinguishes between CKD and non-CKD patients
+* Model successfully distinguishes between CKD and non-CKD patients (Normal, Cyst, Tumor, Stone)
 * Visualizations include:
 
   * Confusion Matrix
