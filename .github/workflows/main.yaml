@@ -7,7 +7,7 @@ on:
 
 env:
   AWS_REGION: ap-south-1
-  ECR_REPOSITORY: kidney-app
+  ECR_REPOSITORY: kidney-classifier
   IMAGE_TAG: latest
 
 jobs:
@@ -15,11 +15,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout code
+      # 1. Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Configure AWS credentials
+      # 2. Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -27,12 +27,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # 3️⃣ Login to Amazon ECR
+      # 3. Login to Amazon ECR
       - name: Login to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 4️⃣ Build and Push Docker Image
+      # 4. Build, tag, and push Docker image
       - name: Build and Push Docker Image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -43,7 +43,7 @@ jobs:
           echo "Pushing Docker image..."
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # 5️⃣ Deploy to EC2
+      # 5. Deploy to EC2
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
