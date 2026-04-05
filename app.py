@@ -11,17 +11,21 @@ CORS(app)
 MODEL_DIR = "/app/artifacts/training/kidney_savedmodel"
 
 def download_model_from_s3():
-    if os.path.exists(os.path.join(MODEL_DIR, "saved_model.pb")):
-        print("Model already exists. Skipping download.")
-        return
-
-    print("Downloading model from S3...")
+    print("Checking S3 bucket...")
 
     s3 = boto3.client("s3")
     bucket = "kidney-model-bucket"
     prefix = "kidney_savedmodel/"
 
-    for obj in s3.list_objects_v2(Bucket=bucket, Prefix=prefix).get("Contents", []):
+    response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
+
+    if "Contents" not in response:
+        print("❌ No files found in S3 bucket!")
+        return
+
+    print(f"Found {len(response['Contents'])} objects in S3")
+
+    for obj in response["Contents"]:
         key = obj["Key"]
 
         if key.endswith("/"):
@@ -30,9 +34,10 @@ def download_model_from_s3():
         local_path = os.path.join(MODEL_DIR, key.replace(prefix, ""))
 
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
+        print(f"Downloading {key} → {local_path}")
         s3.download_file(bucket, key, local_path)
 
-    print("Model downloaded successfully!")
+    print("✅ Model downloaded successfully!")
 
 # ✅ Ensure model exists
 os.makedirs(MODEL_DIR, exist_ok=True)
