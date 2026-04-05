@@ -36,6 +36,14 @@ jobs:
         run: |
           echo "Listing files..."
           ls -R
+
+      - name: Ensure artifacts are present
+        run: |
+          echo "Copying artifacts to build context..."
+          mkdir -p artifacts
+          cp -r ./artifacts ./artifacts || true
+          ls -R artifacts
+
       # 4. Build and Push
       - name: Build and Push Docker Image
         env:
