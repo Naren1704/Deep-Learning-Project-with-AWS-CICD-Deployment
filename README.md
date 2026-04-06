@@ -41,22 +41,39 @@ This project builds a **production-grade image classification pipeline** using t
 ---
 
 ## 📂 Project Structure
+
 ├── .github/workflows/
+
 │   └── main.yaml                  # CI/CD pipeline
+
 ├── artifacts/
+
 │   └── training/
+
 │       └── kidney_savedmodel/     # Trained model (TF SavedModel)
+
 ├── config/
+
 │   └── config.yaml
+
 ├── src/cnnClassifier/
+
 │   ├── components/
+
 │   │   └── model_prediction.py
+
 │   └── ...
+
 ├── templates/
+
 │   └── index.html                 # Frontend UI
+
 ├── app.py                         # Flask app
+
 ├── Dockerfile
+
 ├── params.yaml
+
 └── requirements.txt
 
 ---
