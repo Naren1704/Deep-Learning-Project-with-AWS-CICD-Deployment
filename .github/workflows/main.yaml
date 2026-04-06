@@ -90,6 +90,7 @@ jobs:
         run: |
           docker run -d -p 8080:8080 \
             --name=kidney \
+            --restart always \
             ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
       - name: Clean up old Docker images
