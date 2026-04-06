@@ -1,11 +1,10 @@
-FROM python:3.10-slim
+FROM python:3.10-slim-buster
+
+RUN apt update -y && apt install awscli -y
 
 WORKDIR /app
 
-COPY . .
-
-# 🔥 HARD CHECK
-RUN ls -R /app/artifacts || echo "ARTIFACTS STILL MISSING"
+COPY . /app
 
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
